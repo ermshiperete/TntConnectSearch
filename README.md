@@ -84,6 +84,5 @@ The following fields are searched:
 ## Technical Details
 
 - Uses [UCanAccess](https://ucanaccess.sourceforge.net/) JDBC driver to read Microsoft Access .mpddb files
-- Database password: `tntMPD`
 - Connection is read-only with `openExclusive=true`
 - Built with [picocli](https://picocli.info/) for CLI argument parsing
