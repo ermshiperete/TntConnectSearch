@@ -2,7 +2,9 @@ package com.ermshiperete.tntconnectsearch;
 
 import com.ermshiperete.tntconnectsearch.model.SearchResult;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -13,6 +15,8 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SearchService implements AutoCloseable {
 
@@ -20,7 +24,7 @@ public class SearchService implements AutoCloseable {
     private static final String DB_PASSWORD = "tntMPD";
 
     private static final String SEARCH_SQL = """
-            SELECT c.ContactID, c.FullName, c.MailingCity,
+            SELECT c.ContactID, c.ShortName, c.FullName, c.MailingCity,
                 h.Description AS H_Description, h.Notes AS H_Notes,
                 h.AutoGenCode AS H_AutoGenCode, h.DataChangeLogAsCsv AS H_DataChangeLogAsCsv,
                 c.FirstName, c.LastName, c.OrganizationName,
@@ -62,10 +66,14 @@ public class SearchService implements AutoCloseable {
         String url = "jdbc:ucanaccess://" + dbFile.getAbsolutePath()
                 + ";immediatelyReleaseResources=true;openExclusive=true;";
 
+        PrintStream originalErr = System.err;
+        System.setErr(new PrintStream(new ByteArrayOutputStream()));
         try {
             this.connection = DriverManager.getConnection(url, "", DB_PASSWORD);
         } catch (SQLException e) {
             throw new RuntimeException("Failed to connect to database: " + e.getMessage(), e);
+        } finally {
+            System.setErr(originalErr);
         }
     }
 
@@ -82,6 +90,7 @@ public class SearchService implements AutoCloseable {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     int contactId = rs.getInt("ContactID");
+                    String shortName = rs.getString("ShortName");
                     String name = rs.getString("FullName");
                     String city = rs.getString("MailingCity");
 
@@ -104,6 +113,7 @@ public class SearchService implements AutoCloseable {
                     }
 
                     contactMap.computeIfAbsent(contactId, k -> new SearchResultBuilder(
+                            shortName != null ? shortName : "",
                             name != null ? name : "",
                             city != null ? city : ""
                     )).addFirstMatch(matchedParts);
@@ -122,11 +132,13 @@ public class SearchService implements AutoCloseable {
     }
 
     private static class SearchResultBuilder {
+        private final String shortName;
         private final String name;
         private final String city;
         private String firstMatch;
 
-        SearchResultBuilder(String name, String city) {
+        SearchResultBuilder(String shortName, String name, String city) {
+            this.shortName = shortName;
             this.name = name;
             this.city = city;
         }
@@ -138,7 +150,7 @@ public class SearchService implements AutoCloseable {
         }
 
         SearchResult build() {
-            return new SearchResult(name, city, firstMatch != null ? firstMatch : "");
+            return new SearchResult(shortName, name, city, firstMatch != null ? firstMatch : "");
         }
     }
 

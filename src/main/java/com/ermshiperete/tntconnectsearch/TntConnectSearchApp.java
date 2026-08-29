@@ -12,7 +12,7 @@ import java.util.concurrent.Callable;
         name = "tntconnect-search",
         mixinStandardHelpOptions = true,
         version = "tntconnect-search 1.0.0",
-        description = "Search TntConnect History entries for a term and output matching contact names and cities."
+        description = "Search TntConnect fields and history entries for a term and output matching contact names and cities."
 )
 public class TntConnectSearchApp implements Callable<Integer> {
 
@@ -23,6 +23,7 @@ public class TntConnectSearchApp implements Callable<Integer> {
     private String searchTerm;
 
     private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_BOLD = "\u001B[1m";
     private static final String ANSI_BOLD_RED = "\u001B[1;31m";
 
     @Override
@@ -49,18 +50,20 @@ public class TntConnectSearchApp implements Callable<Integer> {
     }
 
     private void printTable(List<SearchResult> results) {
-        int maxNameWidth = "Name".length();
+        int maxShortNameWidth = "Short Name".length();
         int maxCityWidth = "City".length();
 
         for (SearchResult r : results) {
-            maxNameWidth = Math.max(maxNameWidth, r.name().length());
+            maxShortNameWidth = Math.max(maxShortNameWidth, r.shortName().length());
             maxCityWidth = Math.max(maxCityWidth, r.city().length());
         }
 
-        System.out.printf("%-" + maxNameWidth + "s  %-" + maxCityWidth + "s  %s%n", "Name", "City", "Matched Content");
+        System.out.printf(ANSI_BOLD + "%-" + maxShortNameWidth + "s  %-" + maxCityWidth + "s  %s" + ANSI_RESET + "%n",
+                "Short Name", "City", "Matched Content");
         for (SearchResult r : results) {
             String highlighted = highlightTerm(r.foundIn(), searchTerm);
-            System.out.printf("%-" + maxNameWidth + "s  %-" + maxCityWidth + "s  %s%n", r.name(), r.city(), highlighted);
+            System.out.printf("%-" + maxShortNameWidth + "s  %-" + maxCityWidth + "s  %s%n",
+                    r.shortName(), r.city(), highlighted);
         }
     }
 
