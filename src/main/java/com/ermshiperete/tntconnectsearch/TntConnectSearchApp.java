@@ -36,9 +36,9 @@ public class TntConnectSearchApp implements Callable<Integer> {
                 return 0;
             }
 
-            System.out.println("Found " + results.size() + " matching contact(s) for \"" + searchTerm + "\":");
-            System.out.println();
             printTable(results);
+            System.out.println();
+            System.out.println("Found " + results.size() + " matching contact(s) for \"" + searchTerm + "\":");
             return 0;
         } catch (IllegalArgumentException e) {
             System.err.println("Error: " + e.getMessage());

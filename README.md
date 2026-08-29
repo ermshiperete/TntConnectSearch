@@ -83,6 +83,7 @@ The following fields are searched:
 
 ## Technical Details
 
-- Uses [UCanAccess](https://ucanaccess.sourceforge.net/) JDBC driver to read Microsoft Access .mpddb files
+- Uses [UCanAccess](https://ucanaccess.sourceforge.net/) JDBC driver to
+  read Microsoft Access .mpddb files
 - Connection is read-only with `openExclusive=true`
 - Built with [picocli](https://picocli.info/) for CLI argument parsing
